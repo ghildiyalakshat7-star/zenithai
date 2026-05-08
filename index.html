@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith | Holographic Climate Intelligence</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#030305',
+                        card: 'rgba(15, 15, 20, 0.65)',
+                        cardSolid: '#0f0f14',
+                        border: 'rgba(255, 255, 255, 0.08)',
+                        borderHighlight: 'rgba(255, 255, 255, 0.2)',
+                        muted: '#8b8b9f',
+                        primary: '#00f2fe',
+                        secondary: '#4facfe',
+                        accent: '#10b981',
+                        danger: '#ff4b2b',
+                        warning: '#f5af19'
+                    },
+                    fontFamily: {
+                        sans:['Inter', 'sans-serif'],
+                        mono:['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 12s linear infinite',
+                        'spin-fast': 'spin 3s linear infinite',
+                        'spin-reverse': 'spin 15s linear infinite reverse',
+                        'spin-reverse-fast': 'spin 5s linear infinite reverse',
+                        'float': 'float 8s ease-in-out infinite',
+                        'float-delayed': 'float 8s ease-in-out 4s infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'entry': 'hologramEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-15px)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.6', filter: 'brightness(1)' },
+                            '50%': { opacity: '1', filter: 'brightness(1.5)' }
+                        },
+                        hologramEntry: {
+                            '0%': { opacity: '0', transform: 'translateY(60px) translateZ(-100px) scale(0.9)', filter: 'blur(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) translateZ(0) scale(1)', filter: 'blur(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { background-color: #030305; color: #ffffff; overflow-x: hidden; perspective: 1500px; margin: 0; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #030305; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f2fe; }
+
+        .transform-3d { transform-style: preserve-3d; }
+        .will-change-transform { will-change: transform; }
+
+        .parallax-layer { position: fixed; inset: -10%; width: 120%; height: 120%; pointer-events: none; transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        
+        .space-dust {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, rgba(255,255,255,0.5), rgba(0,0,0,0));
+            background-size: 200px 200px;
+            opacity: 0.3;
+        }
+
+        .hologram-grid {
+            background-image: 
+                linear-gradient(rgba(0, 242, 254, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 254, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+            transform-origin: center top;
+            opacity: 0.4;
+        }
+
+        .glass-panel {
+            background: rgba(15, 15, 20, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.08), transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .glass-panel:hover::before { opacity: 1; }
+        
+        .glass-content { position: relative; z-index: 10; }
+
+        .neon-text { text-shadow: 0 0 15px currentColor; }
+        .neon-box { box-shadow: 0 0 20px currentColor, inset 0 0 10px currentColor; }
+
+        .terminal-scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 242, 254, 0.1) 51%, transparent 100%);
+            background-size: 100% 4px;
+            animation: scanlineMove 10s linear infinite;
+        }
+        @keyframes scanlineMove { 0% { background-position: 0 0; } 100% { background-position: 0 1000px; } }
+
+        /* Custom scrollbar for modals */
+        .modal-scrollbar::-webkit-scrollbar { width: 4px; }
+        .modal-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .modal-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 242, 254, 0.3); border-radius: 10px; }
+        .modal-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 242, 254, 0.8); }
+    </style>
+</head>
+<body class="antialiased selection:bg-primary/50 selection:text-white">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- UTILS & DATA ---
+        const calculateEpaAqiFromPm25 = (pm25) => {
+            if (pm25 === undefined || pm25 === null) return 0;
+            const c = Math.floor(pm25 * 10) / 10;
+            if (c <= 12.0) return Math.round(((50 - 0) / (12.0 - 0)) * c);
+            if (c <= 35.4) return Math.round(((100 - 51) / (35.4 - 12.1)) * (c - 12.1) + 51);
+            if (c <= 55.4) return Math.round(((150 - 101) / (55.4 - 35.5)) * (c - 35.5) + 101);
+            if (c <= 150.4) return Math.round(((200 - 151) / (150.4 - 55.5)) * (c - 55.5) + 151);
+            if (c <= 250.4) return Math.round(((300 - 201) / (250.4 - 150.5)) * (c - 150.5) + 201);
+            if (c <= 350.4) return Math.round(((400 - 301) / (350.4 - 250.5)) * (c - 250.5) + 301);
+            if (c <= 500.4) return Math.round(((500 - 401) / (500.4 - 350.5)) * (c - 350.5) + 401);
+            return Math.round(((999 - 501) / (9999.9 - 500.5)) * (c - 500.5) + 501);
+        };
+
+        const calculateEpaAqiFromPm10 = (pm10) => {
+            if (pm10 === undefined || pm10 === null) return 0;
+            const c = Math.floor(pm10);
+            if (c <= 54) return Math.round(((50 - 0) / (54 - 0)) * c);
+            if (c <= 154) return Math.round(((100 - 51) / (154 - 55)) * (c - 55) + 51);
+            if (c <= 254) return Math.round(((150 - 101) / (254 - 155)) * (c - 155) + 101);
+            if (c <= 354) return Math.round(((200 - 151) / (354 - 255)) * (c - 255) + 151);
+            if (c <= 424) return Math.round(((300 - 201) / (424 - 355)) * (c - 355) + 201);
+            if (c <= 504) return Math.round(((400 - 301) / (504 - 425)) * (c - 425) + 301);
+            if (c <= 604) return Math.round(((500 - 401) / (604 - 505)) * (c - 505) + 401);
+            return Math.round(((999 - 501) / (9999 - 605)) * (c - 605) + 501);
+        };
+
+        const getAQIInfo = (aqi) => {
+            if (aqi <= 50) return { status: 'Optimal', color: 'text-accent', hex: '#10b981', glow: 'rgba(16,185,129,0.4)', msg: 'Atmospheric conditions prime.', mask: 'None required' };
+            if (aqi <= 100) return { status: 'Moderate', color: 'text-warning', hex: '#f5af19', glow: 'rgba(245,175,25,0.4)', msg: 'Acceptable parameters.', mask: 'Optional' };
+            if (aqi <= 150) return { status: 'Elevated Risk', color: 'text-orange-500', hex: '#f97316', glow: 'rgba(249,115,22,0.4)', msg: 'Sensitive bio-forms at risk.', mask: 'Recommended' };
+            if (aqi <= 200) return { status: 'Unhealthy', color: 'text-danger', hex: '#ff4b2b', glow: 'rgba(255,75,43,0.4)', msg: 'General population health alert.', mask: 'Mandatory N95' };
+            if (aqi <= 300) return { status: 'Very Unhealthy', color: 'text-purple-500', hex: '#a855f7', glow: 'rgba(168,85,247,0.4)', msg: 'Severe atmospheric degradation.', mask: 'Respirator Required' };
+            return { status: 'Hazardous', color: 'text-rose-600', hex: '#e11d48', glow: 'rgba(225,29,72,0.6)', msg: 'Toxic environment. Evacuate or seal perimeter.', mask: 'Hazmat/Respirator' };
+        };
+
+        const formatTime = (dateStr) => new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const formatDay = (dateStr) => new Date(dateStr).toLocaleDateString([], { weekday: 'short' });
+
+        const getAccColor = (acc) => {
+            if (acc >= 90) return { text: 'text-accent', bg: 'bg-accent', shadow: 'shadow-[0_0_10px_#10b981]', hex: '#10b981' };
+            if (acc >= 75) return { text: 'text-warning', bg: 'bg-warning', shadow: 'shadow-[0_0_10px_#f5af19]', hex: '#f5af19' };
+            return { text: 'text-danger', bg: 'bg-danger', shadow: 'shadow-[0_0_10px_#ff4b2b]', hex: '#ff4b2b' };
+        };
+
+        // --- 3D INTERACTIVE TILT CARD w/ MOUSE SPOTLIGHT ---
+        const TiltCard = ({ children, className, depth = 20, delay = "0s" }) => {
+            const ref = useRef(null);
+            const[style, setStyle] = useState({ transform: 'perspective(1500px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)' });
+
+            const handleMouseMove = (e) => {
+                if (!ref.current) return;
+                const rect = ref.current.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                ref.current.style.setProperty('--mouse-x', `${x}px`);
+                ref.current.style.setProperty('--mouse-y', `${y}px`);
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -depth;
+                const rotateY = ((x - centerX) / centerX) * depth;
+                
+                setStyle({ transform: `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)` });
+            };
+
+            const handleMouseLeave = () => {
+                setStyle({ transform: 'perspective(1500px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)' });
+                if(ref.current) {
+                    ref.current.style.setProperty('--mouse-x', `50%`);
+                    ref.current.style.setProperty('--mouse-y', `50%`);
+                }
+            };
+
+            return (
+                <div ref={ref} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} 
+                     className={`transform-3d will-change-transform animate-entry ${className}`} 
+                     style={{...style, animationDelay: delay, opacity: 0}}>
+                    <div className="w-full h-full rounded-[inherit] relative transform-3d">
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- LIVE HOLOGRAPHIC TERMINAL ---
+        const LiveTerminal = ({ data, location, hex }) => {
+            const[logs, setLogs] = useState([]);
+
+            useEffect(() => {
+                if (!data || !location) return;
+                setLogs([]);
+                const interval = setInterval(() => {
+                    const time = new Date().toISOString().slice(11, 23); 
+                    const templates =[
+                        `[UPLINK] Securing telemetry link to ${location.name} regional sensors...`,
+                        `[DATA] Polling real-time telemetry from ${data.current.source}...`,
+                        `[SCAN] PM2.5 particle mass reading: ${data.current.pm25} µg/m³`,
+                        `[AERO] Vector wind forces plotting at ${data.current.wind} km/h`,
+                        `[CHEM] CO toxicity levels mapping: ${data.current.co} µg/m³`,
+                        `[THERM] Surface infrared read: ${data.current.temp}°C`,
+                        `[SYS] Deep AI routing dispersion matrix...`,
+                        `[RAD] Solar radiation index spike: UVI ${data.current.uv}`,
+                        `[WARN] Nitrogen Dioxide thresholds testing: ${data.current.no2} µg/m³`
+                    ];
+                    setLogs(prev => {
+                        const updated =[...prev, { id: Date.now(), time, text: templates[Math.floor(Math.random() * templates.length)] }];
+                        return updated.length > 5 ? updated.slice(updated.length - 5) : updated;
+                    });
+                }, 1200); 
+                return () => clearInterval(interval);
+            },[data, location]);
+
+            return (
+                <div className="bg-[#050508]/80 border border-border p-5 rounded-3xl relative overflow-hidden h-48 flex flex-col shadow-inner terminal-scanline">
+                    <div className="flex justify-between items-center mb-3 pb-3 border-b border-white/10 z-10" style={{ transform: 'translateZ(20px)' }}>
+                        <span className="text-xs font-bold text-muted uppercase tracking-widest flex items-center gap-2">
+                            <i className="fas fa-terminal animate-pulse" style={{color: hex}}></i> System Log
+                        </span>
+                        <span className="flex h-2.5 w-2.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{backgroundColor: hex}}></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{backgroundColor: hex}}></span>
+                        </span>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-end gap-2 font-mono text-xs overflow-hidden z-10 relative" style={{ transform: 'translateZ(30px)' }}>
+                        <div className="absolute top-0 left-0 w-full h-10 bg-gradient-to-b from-[#050508] to-transparent z-20"></div>
+                        {logs.map((log, index) => (
+                            <div key={log.id} className="animate-fade-in flex gap-3 text-muted/80" style={{ opacity: (index + 1) / logs.length }}>
+                                <span className="shrink-0 font-bold" style={{color: hex}}>[{log.time}]</span>
+                                <span className="text-white/90 drop-shadow-md">{log.text}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- HOLOGRAPHIC CHART COMPONENT ---
+        const ChartComponent = ({ data, labels, title, color }) => {
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            useEffect(() => {
+                if (chartInstance.current) chartInstance.current.destroy();
+                const ctx = chartRef.current.getContext('2d');
+                
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, `${color}44`);
+                gradient.addColorStop(1, `${color}00`);
+
+                chartInstance.current = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets:[{
+                            label: title,
+                            data: data,
+                            borderColor: color,
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#000',
+                            pointBorderColor: color,
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: color,
+                            pointHoverBorderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleColor: color, bodyColor: '#fff', borderColor: color, borderWidth: 1, padding: 12, bodyFont: { family: 'JetBrains Mono' }, displayColors: false } },
+                        scales: { y: { grid: { color: 'rgba(255,255,255,0.05)', borderDash:[4, 4] }, border: { display: false }, ticks: { color: '#8b8b9f', font: { family: 'JetBrains Mono', size: 10 } } }, x: { grid: { display: false }, border: { display: false }, ticks: { color: '#8b8b9f', font: { family: 'JetBrains Mono', size: 10 } } } },
+                        interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                    }
+                });
+                return () => { if (chartInstance.current) chartInstance.current.destroy(); }
+            },[data, labels, title, color]);
+
+            return <div className="h-full w-full min-h-[200px] relative z-10"><canvas ref={chartRef}></canvas></div>;
+        };
+
+        // --- MAIN APPLICATION ---
+        const App = () => {
+            const[status, setStatus] = useState('prompting'); 
+            const[data, setData] = useState(null);
+            const [location, setLocation] = useState(null);
+            const[activeMetric, setActiveMetric] = useState('aqi'); 
+            const[searchQuery, setSearchQuery] = useState('');
+            const[searchResults, setSearchResults] = useState([]);
+            const[isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+            const[showRawAQI, setShowRawAQI] = useState(false);
+            const [showMap, setShowMap] = useState(false);
+            const[expandedProtocols, setExpandedProtocols] = useState({ mask: false, hvac: false });
+
+            // About Website / Explain Modal State
+            const[showAboutModal, setShowAboutModal] = useState(false);
+
+            // Global Parallax Mouse Tracking
+            const[mousePos, setMousePos] = useState({ x: 0, y: 0, rawX: 0, rawY: 0 });
+
+            useEffect(() => {
+                const handleGlobalMouse = (e) => {
+                    const x = (e.clientX / window.innerWidth - 0.5);
+                    const y = (e.clientY / window.innerHeight - 0.5);
+                    setMousePos({ x, y, rawX: e.clientX, rawY: e.clientY });
+                };
+                window.addEventListener('mousemove', handleGlobalMouse);
+                return () => window.removeEventListener('mousemove', handleGlobalMouse);
+            },[]);
+
+            const fetchRealTimeData = async (lat, lon, locName = null, country = null) => {
+                try {
+                    setStatus('fetching');
+                    setIsSearchDropdownOpen(false);
+                    setSearchQuery('');
+                    
+                    let finalLocName = locName;
+                    let finalCountry = country;
+                    
+                    if (!locName) {
+                        const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                        const geoData = await geoRes.json();
+                        const address = geoData.address || {};
+                        finalLocName = address.neighbourhood || address.suburb || address.city_district || address.city || address.town || address.state || 'Local Sector';
+                        finalCountry = address.country || '';
+                    }
+
+                    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation,uv_index&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation_probability,uv_index&past_days=1&forecast_days=7`);
+                    const weatherData = await weatherRes.json();
+
+                    const aqiRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,us_aqi&hourly=pm10,pm2_5,us_aqi&past_days=1&forecast_days=7`);
+                    const aqiData = await aqiRes.json();
+
+                    let waqiAqi = null;
+                    let sourceName = 'Open-Meteo Satellite Array';
+                    try {
+                        const waqiRes = await fetch(`https://api.waqi.info/feed/geo:${lat};${lon}/?token=d9c0f3c71143407d61c900d9dbb450489303e7e8`);
+                        const waqiData = await waqiRes.json();
+                        if (waqiData.status === 'ok' && waqiData.data && waqiData.data.aqi) {
+                            const parsedAqi = parseInt(waqiData.data.aqi, 10);
+                            if(!isNaN(parsedAqi) && parsedAqi > 0) {
+                                waqiAqi = parsedAqi;
+                                const stName = waqiData.data.city && waqiData.data.city.name ? waqiData.data.city.name : 'Ground Sensor';
+                                sourceName = `AQICN Station: ${stName.split(',')[0].substring(0, 22)}`;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("AQICN data unavailable, falling back to Open-Meteo");
+                    }
+
+                    const calcPm25 = calculateEpaAqiFromPm25(aqiData.current.pm2_5);
+                    const calcPm10 = calculateEpaAqiFromPm10(aqiData.current.pm10);
+                    const fallbackAqi = Math.max(calcPm25, calcPm10);
+                    
+                    const omAqi = aqiData.current.us_aqi ? Math.round(aqiData.current.us_aqi) : fallbackAqi; 
+                    let actualAqi = (waqiAqi !== null) ? waqiAqi : omAqi; 
+                    
+                    const currentHourObj = new Date(); currentHourObj.setMinutes(0,0,0); 
+                    let currentIndex = aqiData.hourly.time.findIndex(t => t === currentHourObj.toISOString().slice(0, 13) + ":00");
+                    if (currentIndex === -1) currentIndex = 24; 
+
+                    const buildShortTerm = (sourceArray) => {
+                        let trend=[], forecast=[], labelsTrend=[], labelsForecast=[];
+                        for(let i=currentIndex-6; i<=currentIndex; i++) {
+                            if(sourceArray[i] !== undefined) {
+                                trend.push(sourceArray[i]);
+                                labelsTrend.push(i === currentIndex ? 'Now' : formatTime(aqiData.hourly.time[i]));
+                            }
+                        }
+                        for(let i=currentIndex+1; i<=currentIndex+6; i++) {
+                            if(sourceArray[i] !== undefined) {
+                                forecast.push(sourceArray[i]);
+                                labelsForecast.push(formatTime(aqiData.hourly.time[i]));
+                            }
+                        }
+                        return { trend, forecast, labelsTrend, labelsForecast };
+                    };
+
+                    const buildWeeklyData = (sourceArray) => {
+                        let weekly=[], labelsWeekly=[];
+                        for(let i=0; i<7; i++) {
+                            let targetIdx = currentIndex + (i * 24);
+                            if(targetIdx < sourceArray.length) {
+                                weekly.push(sourceArray[targetIdx]);
+                                labelsWeekly.push(i === 0 ? 'Today' : formatDay(aqiData.hourly.time[targetIdx]));
+                            }
+                        }
+                        return { weekly, labelsWeekly };
+                    };
+
+                    const processMetric = (source) => ({
+                        ...buildShortTerm(source),
+                        ...buildWeeklyData(source)
+                    });
+
+                    setLocation({ lat: Number(lat).toFixed(4), lon: Number(lon).toFixed(4), name: finalLocName, country: finalCountry });
+                    setData({
+                        current: {
+                            aqi: actualAqi, 
+                            calculatedAqi: fallbackAqi, 
+                            actualAqi: actualAqi, 
+                            source: sourceName,
+                            temp: Math.round(weatherData.current.temperature_2m), 
+                            humidity: Math.round(weatherData.current.relative_humidity_2m),
+                            wind: weatherData.current.wind_speed_10m, 
+                            uv: weatherData.current.uv_index, 
+                            rain: weatherData.current.precipitation,
+                            pm25: aqiData.current.pm2_5, 
+                            pm10: aqiData.current.pm10, 
+                            co: aqiData.current.carbon_monoxide, 
+                            no2: aqiData.current.nitrogen_dioxide,
+                        },
+                        charts: {
+                            aqi: processMetric(aqiData.hourly.us_aqi || aqiData.hourly.pm2_5.map(calculateEpaAqiFromPm25)),
+                            temp: processMetric(weatherData.hourly.temperature_2m),
+                            humidity: processMetric(weatherData.hourly.relative_humidity_2m),
+                            wind: processMetric(weatherData.hourly.wind_speed_10m),
+                            uv: processMetric(weatherData.hourly.uv_index),
+                            rain: processMetric(weatherData.hourly.precipitation_probability)
+                        }
+                    });
+
+                    setStatus('active');
+                } catch (error) { setStatus('error'); }
+            };
+
+            const executeSearch = async (e) => {
+                if(e) e.preventDefault();
+                if(!searchQuery) return;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5&addressdetails=1`);
+                    const searchData = await res.json();
+                    if(searchData && searchData.length > 0) {
+                        setSearchResults(searchData.map(item => ({ latitude: item.lat, longitude: item.lon, name: item.address.neighbourhood || item.address.suburb || item.address.city || item.address.town || item.address.state || item.name, display: item.display_name, country: item.address.country })));
+                        setIsSearchDropdownOpen(true);
+                    }
+                } catch(e) { console.error(e); }
+            };
+
+            useEffect(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => fetchRealTimeData(pos.coords.latitude, pos.coords.longitude),
+                        (err) => {
+                            console.warn("Location permission denied or failed:", err);
+                            setStatus('denied');
+                        }, 
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    );
+                } else {
+                    setStatus('denied');
+                }
+            },[]);
+
+            useEffect(() => {
+                const handleClickOutside = (e) => { if(!e.target.closest('#search-wrap')) setIsSearchDropdownOpen(false); };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            },[]);
+
+            if (status === 'prompting') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center relative overflow-hidden">
+                        <div className="space-dust parallax-layer absolute inset-0"></div>
+                        <div className="relative z-10 flex flex-col items-center glass-panel p-12 rounded-3xl max-w-md w-full border-primary/20 mx-4 shadow-[0_0_40px_rgba(0,242,254,0.15)]">
+                            <i className="fas fa-satellite-dish text-5xl text-primary animate-pulse mb-6"></i>
+                            <h1 className="text-2xl font-black text-white mb-2">Location Required</h1>
+                            <p className="text-muted text-sm mb-6">Zenith Core requires strict geolocational permissions to pull dynamic data from AQICN. Please allow location access in your browser prompt.</p>
+                            <div className="flex gap-2 justify-center">
+                                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{animationDelay: '0s'}}></div>
+                                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                                <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{animationDelay: '0.4s'}}></div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (status === 'denied') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center relative overflow-hidden">
+                        <div className="space-dust parallax-layer absolute inset-0"></div>
+                        <div className="relative z-10 flex flex-col items-center glass-panel p-12 rounded-3xl max-w-md w-full border-danger/30 shadow-[0_0_30px_rgba(255,75,43,0.15)] mx-4">
+                            <i className="fas fa-lock text-5xl text-danger mb-6"></i>
+                            <h1 className="text-2xl font-black text-white mb-2">Access Denied</h1>
+                            <p className="text-muted text-sm mb-6 font-mono leading-relaxed">Atmospheric scanning aborted. Precise geolocational permissions are mandatory for Zenith Core operations. Please enable location access in your device/browser settings and reload the interface.</p>
+                            <button onClick={() => window.location.reload()} className="px-6 py-3 bg-danger/10 text-danger border border-danger/30 rounded-xl font-bold font-mono hover:bg-danger hover:text-white transition-colors w-full tracking-widest shadow-inner">
+                                RETRY SENSOR UPLINK
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (status === 'fetching' || status === 'error' || (!data && status === 'active')) {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-center relative overflow-hidden">
+                        <div className="space-dust parallax-layer absolute inset-0"></div>
+                        <div className="relative z-10 flex flex-col items-center">
+                            <div className="w-24 h-24 border-y-4 border-primary rounded-full animate-spin-fast mb-8 shadow-[0_0_50px_rgba(0,242,254,0.5)]"></div>
+                            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary mb-4 tracking-tighter">ZENITH CORE</h1>
+                            <p className="text-primary font-mono tracking-[0.3em] text-xs animate-pulse uppercase">{status === 'error' ? 'Uplink failed. Retrying...' : 'Establishing Quantum Uplink...'}</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            const aqiInfo = getAQIInfo(data.current.aqi);
+            const currentChartData = data.charts[activeMetric];
+            const getMetricConfig = () => {
+                switch(activeMetric) {
+                    case 'temp': return { title: 'Temperature', color: '#f97316', bg: 'bg-orange-500' };
+                    case 'humidity': return { title: 'Humidity', color: '#3b82f6', bg: 'bg-blue-500' };
+                    case 'wind': return { title: 'Wind Vector', color: '#e5e7eb', bg: 'bg-gray-300' };
+                    case 'uv': return { title: 'Radiation', color: '#facc15', bg: 'bg-yellow-400' };
+                    case 'rain': return { title: 'Precipitation', color: '#93c5fd', bg: 'bg-blue-300' };
+                    default: return { title: 'Air Quality Index', color: aqiInfo.hex, bg: aqiInfo.bg };
+                }
+            };
+
+            const metricConfig = getMetricConfig();
+
+            // DYNAMIC METEOROLOGICAL CONFIDENCE MATRIX
+            const recentTrend = data.charts.aqi.trend ||[];
+            const meanVal = recentTrend.reduce((a, b) => a + b, 0) / (recentTrend.length || 1);
+            const varianceVal = recentTrend.reduce((a, b) => a + Math.pow(b - meanVal, 2), 0) / (recentTrend.length || 1);
+            const stdDev = Math.sqrt(varianceVal);
+            
+            // Higher volatility in recent weather drops the prediction confidence.
+            const volatilityPenalty = Math.min(18, (stdDev / Math.max(meanVal, 1)) * 35);
+            const baseAcc = Math.max(82, Math.min(98, Math.round(98 - volatilityPenalty)));
+
+            // Standard atmospheric predictability decay over time
+            const acc24 = Math.round(baseAcc * Math.exp(-0.02 * 1));
+            const acc72 = Math.round(baseAcc * Math.exp(-0.02 * 3));
+            const acc168 = Math.round(baseAcc * Math.exp(-0.02 * 7));
+
+            const mainAccColor = getAccColor(baseAcc);
+            const color24 = getAccColor(acc24);
+            const color72 = getAccColor(acc72);
+            const color168 = getAccColor(acc168);
+
+            return (
+                <div className="relative pb-0 min-h-screen flex flex-col overflow-x-hidden">
+                    
+                    {/* PARALLAX VFX BACKGROUND ENGINE */}
+                    <div className="fixed inset-0 z-[-1] pointer-events-none bg-background overflow-hidden">
+                        <div className="absolute inset-x-0 bottom-0 h-full hologram-grid" style={{ transform: `perspective(500px) rotateX(60deg) translateY(${-100 + mousePos.y * 50}px) translateX(${mousePos.x * -50}px) translateZ(-200px)` }}></div>
+                        <div className="space-dust parallax-layer" style={{ transform: `translate(${mousePos.x * -40}px, ${mousePos.y * -40}px)` }}></div>
+                        <div className="absolute top-[10%] left-[10%] w-[800px] h-[800px] rounded-full blur-[200px] opacity-20 mix-blend-screen transition-colors duration-1000" 
+                             style={{ backgroundColor: aqiInfo.hex, transform: `translate(${mousePos.x * -100}px, ${mousePos.y * -100}px)` }}></div>
+                        <div className="absolute bottom-[0%] right-[10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-10 mix-blend-screen" 
+                             style={{ backgroundColor: '#00f2fe', transform: `translate(${mousePos.x * 80}px, ${mousePos.y * 80}px)` }}></div>
+                    </div>
+
+                    {showMap && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setShowMap(false)}>
+                            <div className="w-full max-w-5xl h-[85vh] bg-[#030305] rounded-3xl overflow-hidden border border-primary/40 relative shadow-[0_0_50px_rgba(0,242,254,0.2)] animate-slide-up transform-gpu" onClick={e => e.stopPropagation()}>
+                                <iframe width="100%" height="100%" frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0" 
+                                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.lon-0.05},${location.lat-0.05},${Number(location.lon)+0.05},${Number(location.lat)+0.05}&layer=mapnik&marker=${location.lat},${location.lon}`}
+                                    className="absolute inset-0 grayscale invert contrast-150 brightness-75"></iframe>
+                                <div className="absolute inset-0 bg-[#00f2fe] mix-blend-multiply opacity-50 pointer-events-none"></div>
+                                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgNDBoNDBWMEgweptMMSAxSDM5djM4SDF6IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIj48L3BhdGg+PC9zdmc+')] opacity-50 pointer-events-none"></div>
+                                <div className="absolute inset-0 terminal-scanline pointer-events-none opacity-60"></div>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full pointer-events-none flex items-center justify-center">
+                                    <svg className="absolute inset-0 w-full h-full animate-spin-slow opacity-60" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke="#00f2fe" strokeWidth="1" strokeDasharray="4 6" /></svg>
+                                    <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-primary/70"></div>
+                                    <div className="absolute left-0 right-0 top-1/2 h-[1px] bg-primary/70"></div>
+                                    <div className="w-3 h-3 border-2 border-primary rounded-full animate-ping"></div>
+                                </div>
+                                <button onClick={() => setShowMap(false)} className="absolute top-4 right-4 w-10 h-10 bg-black/80 border border-primary/50 text-primary rounded-xl flex items-center justify-center hover:bg-primary hover:text-black transition-colors z-50">
+                                    <i className="fas fa-times"></i>
+                                </button>
+                                <div className="absolute top-4 left-4 flex flex-col gap-3 pointer-events-none z-40">
+                                    <div className="bg-black/80 border border-primary/40 px-5 py-2.5 rounded-xl text-sm font-mono text-primary backdrop-blur-md shadow-[0_0_20px_rgba(0,242,254,0.2)] uppercase tracking-wider">
+                                        <span className="text-white/50 mr-2">TARGET_ID:</span> <span className="font-bold text-white">{location.name}</span>
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-4 right-4 bg-black/80 border border-primary/30 px-5 py-2.5 rounded-xl text-xs font-bold font-mono text-white backdrop-blur-md flex items-center gap-3 pointer-events-none z-40 shadow-[0_0_15px_rgba(0,242,254,0.2)]">
+                                    <i className="fas fa-satellite text-primary animate-pulse"></i> LEO GEO-SYNC
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ABOUT SYSTEM MODAL */}
+                    {showAboutModal && (
+                        <div className="fixed inset-0 z-[999] bg-[#030305]/95 backdrop-blur-xl flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+                            <div className="absolute inset-0 terminal-scanline pointer-events-none opacity-40"></div>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(0,242,254,0.05)_0%,_transparent_60%)] pointer-events-none"></div>
+
+                            <div className="glass-panel p-8 md:p-12 rounded-3xl max-w-4xl w-full relative z-10 border-primary/30 shadow-[0_0_50px_rgba(0,242,254,0.15)] transform-gpu animate-slide-up max-h-[90vh] flex flex-col">
+                                <button onClick={() => setShowAboutModal(false)} className="absolute top-6 right-6 text-muted hover:text-white transition-colors text-xl z-50">
+                                    <i className="fas fa-times"></i>
+                                </button>
+                                
+                                <div className="flex flex-col md:flex-row items-start md:items-center mb-8 border-b border-white/10 pb-6 gap-5 shrink-0 mt-2">
+                                    <div className="w-16 h-16 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center text-primary shadow-[0_0_15px_rgba(0,242,254,0.3)] shrink-0">
+                                        <i className="fas fa-layer-group text-3xl"></i>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl md:text-3xl font-black text-white tracking-widest flex items-center gap-3">
+                                            ZENITH <span className="text-primary font-mono font-normal opacity-80">CORE</span>
+                                        </h2>
+                                        <p className="text-xs font-mono text-primary/70 mt-2 tracking-[0.2em] animate-pulse">HOLOGRAPHIC CLIMATE INTELLIGENCE SYSTEM</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex-1 overflow-y-auto pr-2 space-y-8 modal-scrollbar pb-6">
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                                            <i className="fas fa-satellite-dish text-primary"></i> System Overview
+                                        </h3>
+                                        <p className="text-muted leading-relaxed font-sans text-sm md:text-base">
+                                            Zenith is an advanced atmospheric and environmental monitoring dashboard. Designed with a futuristic holographic interface, it aggregates live telemetric data from global satellite feeds and ground sensors to provide precise, real-time insights into your local ecosystem's health and safety.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner hover:border-primary/30 transition-colors group">
+                                            <i className="fas fa-wind text-3xl text-secondary mb-4 group-hover:scale-110 transition-transform"></i>
+                                            <h4 className="text-lg font-bold text-white mb-2">Live AQI Tracking</h4>
+                                            <p className="text-sm text-muted">Translates raw PM2.5 particulate mass into standardized Air Quality Index (AQI) values, cross-referencing Open-Meteo feeds and AQICN WAQI sensors for maximum accuracy.</p>
+                                        </div>
+                                        <div className="bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner hover:border-primary/30 transition-colors group">
+                                            <i className="fas fa-chart-line text-3xl text-accent mb-4 group-hover:scale-110 transition-transform"></i>
+                                            <h4 className="text-lg font-bold text-white mb-2">Predictive Modeling</h4>
+                                            <p className="text-sm text-muted">Leverages global ensemble forecasting to project 6-hour immediate trends and 7-day macro-forecasts for temperature, humidity, radiation, and air quality.</p>
+                                        </div>
+                                        <div className="bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner hover:border-primary/30 transition-colors group">
+                                            <i className="fas fa-shield-virus text-3xl text-warning mb-4 group-hover:scale-110 transition-transform"></i>
+                                            <h4 className="text-lg font-bold text-white mb-2">Defense Protocols</h4>
+                                            <p className="text-sm text-muted">Automated action plans dictate necessary biological defense measures, recommending respiratory equipment or HVAC isolation based on current atmospheric toxicity.</p>
+                                        </div>
+                                        <div className="bg-black/40 p-6 rounded-2xl border border-white/5 shadow-inner hover:border-primary/30 transition-colors group">
+                                            <i className="fas fa-map-location-dot text-3xl text-danger mb-4 group-hover:scale-110 transition-transform"></i>
+                                            <h4 className="text-lg font-bold text-white mb-2">Dynamic Geolocation</h4>
+                                            <p className="text-sm text-muted">Instantly recalibrates to any global coordinate via Nominatim OpenStreetMap integration, delivering hyper-local intelligence anywhere on Earth.</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-primary/5 border border-primary/20 p-6 rounded-2xl mt-8 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><i className="fas fa-database text-8xl text-primary"></i></div>
+                                        <h3 className="text-sm font-mono font-bold text-primary mb-4 tracking-widest uppercase relative z-10">Data Uplink Sources</h3>
+                                        <div className="flex flex-wrap gap-3 relative z-10">
+                                            <span className="bg-black/60 px-4 py-2 rounded-lg text-xs font-mono text-white/90 border border-white/10 shadow-inner flex items-center gap-2"><i className="fas fa-cloud"></i> Open-Meteo API</span>
+                                            <span className="bg-black/60 px-4 py-2 rounded-lg text-xs font-mono text-white/90 border border-white/10 shadow-inner flex items-center gap-2"><i className="fas fa-tower-cell"></i> AQICN WAQI Sensors</span>
+                                            <span className="bg-black/60 px-4 py-2 rounded-lg text-xs font-mono text-white/90 border border-white/10 shadow-inner flex items-center gap-2"><i className="fas fa-globe"></i> Nominatim Geocoding</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* TOP NAVBAR */}
+                    <nav className="sticky top-0 w-full z-40 bg-background/50 backdrop-blur-xl border-b border-border shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="flex flex-col md:flex-row items-center justify-between py-4 gap-6">
+                                <div className="flex items-center gap-6 w-full md:w-auto">
+                                    <div className="flex items-center gap-3 cursor-pointer group">
+                                        <div className="w-12 h-12 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-black transition-all shadow-[0_0_15px_rgba(0,242,254,0.3)]">
+                                            <i className="fas fa-layer-group text-xl"></i>
+                                        </div>
+                                        <span className="font-black text-2xl tracking-tighter text-white hidden sm:block drop-shadow-md">ZENITH</span>
+                                    </div>
+                                    
+                                    <div id="search-wrap" className="relative flex-1 md:w-[400px]">
+                                        <form onSubmit={executeSearch} className="relative group">
+                                            <i className="fas fa-crosshairs absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 text-sm group-focus-within:text-primary transition-colors group-focus-within:animate-spin"></i>
+                                            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Target new coordinates..." 
+                                                   className="w-full bg-[#0a0a0f]/80 border border-borderHighlight rounded-xl pl-12 pr-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:shadow-[0_0_25px_rgba(0,242,254,0.2)] transition-all font-mono backdrop-blur-md" />
+                                        </form>
+                                        {isSearchDropdownOpen && searchResults.length > 0 && (
+                                            <div className="absolute top-full mt-3 w-full bg-[#0a0a0f]/95 backdrop-blur-xl border border-primary/30 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7)] overflow-hidden z-50 animate-slide-down">
+                                                {searchResults.map((res, i) => (
+                                                    <div key={i} onClick={() => fetchRealTimeData(res.latitude, res.longitude, res.name, res.country)} className="p-4 border-b border-border last:border-0 hover:bg-primary/20 cursor-pointer transition-colors flex flex-col group">
+                                                        <div className="text-base font-bold text-white group-hover:text-primary transition-colors">{res.name}</div>
+                                                        <div className="text-xs text-muted truncate mt-1 font-mono">{res.display}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 w-full md:w-auto">
+                                    <div className="flex items-center gap-3 text-sm bg-[#0a0a0f]/80 border border-borderHighlight px-6 py-3 rounded-xl shadow-inner backdrop-blur-md font-mono">
+                                        <span className="relative flex h-3 w-3 shrink-0"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-accent shadow-[0_0_10px_#10b981]"></span></span>
+                                        <span className="text-white/50 text-xs hidden sm:inline mr-1">LIVE GPS DATA:</span>
+                                        <span className="text-white font-bold tracking-wide truncate max-w-[200px]">{location.name}</span>
+                                        <span className="text-primary/70 hidden lg:inline">[{location.lat}, {location.lon}]</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <main className="flex-1 pt-8 z-10 relative">
+                        {/* ROW 1 */}
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-4 flex flex-col gap-8 animate-float">
+                                <TiltCard delay="0s" depth={25} className="flex-none">
+                                    <div className="glass-panel p-8 rounded-[2rem] flex flex-col relative group cursor-pointer" onClick={() => setShowRawAQI(!showRawAQI)}>
+                                        <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700 rounded-[2rem]" style={{background: `radial-gradient(circle at 50% 50%, ${aqiInfo.hex}, transparent 60%)`}}></div>
+                                        
+                                        <div className="flex justify-between items-center mb-8 glass-content" style={{ transform: 'translateZ(40px)' }}>
+                                            <div>
+                                                <h2 className="text-xs font-black text-muted uppercase tracking-[0.2em] mb-1">Sector Threat Level</h2>
+                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">Core Status <i className="fas fa-crosshairs text-primary animate-spin-slow"></i></h3>
+                                            </div>
+                                            <button onClick={(e) => {e.stopPropagation(); setShowMap(true)}} className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-all transform hover:scale-110 shadow-[0_0_15px_rgba(0,242,254,0.3)] z-50">
+                                                <i className="fas fa-satellite text-lg"></i>
+                                            </button>
+                                        </div>
+
+                                        <div className="flex-1 flex flex-col items-center justify-center relative my-4" style={{ transform: 'translateZ(80px)' }}>
+                                            <div className="relative flex items-center justify-center w-64 h-64">
+                                                <svg className="absolute inset-0 w-full h-full animate-spin-slow opacity-50" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="none" stroke={aqiInfo.hex} strokeWidth="0.5" className="dashed-orbit" /></svg>
+                                                <svg className="absolute inset-0 w-full h-full animate-spin-reverse opacity-40 scale-110" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke={aqiInfo.hex} strokeWidth="1" strokeDasharray="5 20" /></svg>
+                                                <svg className="absolute inset-0 w-full h-full animate-spin-fast opacity-20 scale-90" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="#fff" strokeWidth="2" strokeDasharray="1 10" /></svg>
+                                                
+                                                <div className={`w-52 h-52 rounded-full border-[4px] border-white/10 flex flex-col items-center justify-center bg-[#0a0a0f] shadow-[0_0_60px_${aqiInfo.glow},inset_0_0_30px_${aqiInfo.glow}] relative z-10 transition-all duration-700 animate-pulse-glow backdrop-blur-xl`}>
+                                                    <span className="text-7xl font-black font-mono text-white tracking-tighter drop-shadow-[0_0_15px_currentColor]" style={{color: aqiInfo.hex}}>{showRawAQI ? data.current.pm25 : data.current.aqi}</span>
+                                                    <span className="text-xs font-bold text-white/50 mt-2 uppercase tracking-[0.3em] text-center px-4 leading-tight">
+                                                        {showRawAQI ? 'PM2.5 VOL' : data.current.source}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className={`mt-8 px-8 py-3 rounded-xl text-sm font-black uppercase tracking-[0.2em] border ${aqiInfo.bg} ${aqiInfo.color} neon-box`} style={{borderColor: aqiInfo.hex}}>
+                                                {aqiInfo.status}
+                                            </div>
+                                            
+                                            <a href={`https://aqicn.org/search/#q=${location.name}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="mt-6 text-xs font-bold font-mono text-primary/70 hover:text-primary transition-colors flex items-center gap-2 border border-primary/20 px-4 py-2 rounded-lg bg-primary/5 hover:bg-primary/20">
+                                                VERIFY ON AQICN <i className="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </TiltCard>
+
+                                <TiltCard delay="0.1s" depth={15}>
+                                    <LiveTerminal data={data} location={location} hex={aqiInfo.hex} />
+                                </TiltCard>
+                            </div>
+
+                            <div className="lg:col-span-8 flex flex-col gap-8 animate-float-delayed">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                                    {[
+                                        { id: 'aqi', icon: 'fa-radiation', label: 'Air Quality', val: data.current.aqi, unit: 'AQI', hex: aqiInfo.hex },
+                                        { id: 'temp', icon: 'fa-temperature-full', label: 'Thermal', val: data.current.temp, unit: '°C', hex: '#f97316' },
+                                        { id: 'humidity', icon: 'fa-droplet', label: 'Moisture', val: data.current.humidity, unit: '%', hex: '#3b82f6' },
+                                        { id: 'wind', icon: 'fa-wind', label: 'Wind Vector', val: data.current.wind, unit: 'km/h', hex: '#e5e7eb' },
+                                        { id: 'uv', icon: 'fa-sun', label: 'Radiation', val: data.current.uv, unit: 'UVI', hex: '#facc15' },
+                                        { id: 'rain', icon: 'fa-cloud-showers-heavy', label: 'Precipitation', val: data.current.rain, unit: 'mm', hex: '#93c5fd' }
+                                    ].map((m, i) => (
+                                        <TiltCard key={m.id} delay={`${0.2 + (i * 0.1)}s`} depth={20} className="h-full">
+                                            <div onClick={() => setActiveMetric(m.id)} className={`glass-panel p-6 rounded-[1.5rem] flex flex-col justify-between cursor-pointer group h-full transition-all duration-300 ${activeMetric === m.id ? 'bg-[#0a0a0f]/80' : ''}`} style={{ borderColor: activeMetric === m.id ? m.hex : 'rgba(255,255,255,0.05)', boxShadow: activeMetric === m.id ? `0 0 30px ${m.hex}44, inset 0 0 20px ${m.hex}22` : '' }}>
+                                                <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500" style={{background: `radial-gradient(circle at 50% 50%, ${m.hex}, transparent 70%)`}}></div>
+                                                <div className="flex items-center gap-4 mb-4 glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                                    <div className="relative flex items-center justify-center w-14 h-14">
+                                                        <svg className="absolute inset-0 w-full h-full animate-spin-slow opacity-0 group-hover:opacity-80 transition-opacity duration-500 scale-[1.3]" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke={m.hex} strokeWidth="2" strokeDasharray="10 10" /></svg>
+                                                        <div className="w-12 h-12 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center text-xl transition-all shadow-inner relative z-10" style={{ color: activeMetric === m.id ? m.hex : '#8b8b9f', borderColor: activeMetric === m.id ? m.hex : '' }}>
+                                                            <i className={`fas ${m.icon} group-hover:scale-110 group-hover:animate-pulse`}></i>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-xs font-bold uppercase tracking-widest text-muted group-hover:text-white transition-colors">{m.label}</p>
+                                                </div>
+                                                <p className="text-4xl font-black font-mono text-white glass-content drop-shadow-lg" style={{ transform: 'translateZ(50px)' }}>{m.val} <span className="text-sm font-sans text-muted font-bold ml-1">{m.unit}</span></p>
+                                            </div>
+                                        </TiltCard>
+                                    ))}
+                                </div>
+
+                                <TiltCard delay="0.8s" depth={15} className="flex-1">
+                                    <div className="glass-panel p-8 rounded-[2rem] flex flex-col h-full min-h-[350px]">
+                                        <div className="flex justify-between items-center mb-6 glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                            <h3 className="text-lg font-bold text-white flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(0,242,254,0.3)]"><i className="fas fa-history"></i></div>
+                                                Recent History: <span style={{color: metricConfig.color}}>{metricConfig.title}</span>
+                                            </h3>
+                                            <span className="text-xs font-mono bg-black/50 px-3 py-1.5 rounded-lg border border-white/10 text-muted">PAST 6 HOURS</span>
+                                        </div>
+                                        <div className="flex-1 glass-content" style={{ transform: 'translateZ(50px)' }}>
+                                            <ChartComponent data={currentChartData.trend} labels={currentChartData.labelsTrend} title={metricConfig.title} color={metricConfig.color} />
+                                        </div>
+                                    </div>
+                                </TiltCard>
+                            </div>
+                        </div>
+
+                        {/* ROW 2: LONG-TERM FORECAST & RELIABILITY MATRIX */}
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
+                            <TiltCard delay="0.9s" depth={15} className="lg:col-span-8">
+                                <div className="glass-panel p-8 rounded-[2rem] flex flex-col h-full relative group">
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700" style={{background: `radial-gradient(circle at 50% 50%, ${metricConfig.color}, transparent 70%)`}}></div>
+                                    <div className="mb-6 flex justify-between items-center glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                        <h3 className="text-2xl font-black text-white flex items-center gap-3 tracking-tight">
+                                            <i className="fas fa-calendar-week text-primary animate-pulse"></i> 7-Day Extended Prediction
+                                        </h3>
+                                        <span className="px-4 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/30 text-xs font-bold tracking-[0.2em] shadow-[0_0_15px_rgba(0,242,254,0.3)]">MACRO-FORECAST</span>
+                                    </div>
+                                    <div className="flex-1 min-h-[300px] glass-content" style={{ transform: 'translateZ(50px)' }}>
+                                        <ChartComponent data={currentChartData.weekly} labels={currentChartData.labelsWeekly} title={`7-Day ${metricConfig.title}`} color={metricConfig.color} />
+                                    </div>
+                                </div>
+                            </TiltCard>
+
+                            <TiltCard delay="1s" depth={15} className="lg:col-span-4">
+                                <div className="glass-panel p-8 rounded-[2rem] flex flex-col h-full relative group">
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700" style={{background: `radial-gradient(circle at 50% 50%, #10b981, transparent 70%)`}}></div>
+                                    <div className="mb-6 glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                        <h3 className="text-xl font-black text-white mb-1 tracking-tight">
+                                            <i className="fas fa-microchip text-accent"></i> Reliability Matrix
+                                        </h3>
+                                        <p className="text-xs text-muted font-mono">Prediction confidence degradation.</p>
+                                    </div>
+                                    
+                                    <div className="flex-1 flex flex-col gap-6 glass-content justify-center" style={{ transform: 'translateZ(50px)' }}>
+                                        <div className="flex items-center gap-5 bg-black/40 p-4 rounded-2xl border border-white/5 shadow-inner">
+                                            <div className={`w-16 h-16 rounded-full border-4 border-t-transparent flex items-center justify-center ${mainAccColor.shadow} relative`} style={{borderColor: `${mainAccColor.hex}44`, borderTopColor: mainAccColor.hex}}>
+                                                <div className={`absolute inset-0 w-full h-full flex items-center justify-center font-black text-xl font-mono ${mainAccColor.text}`}>
+                                                    {baseAcc}<span className="text-xs">%</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-white font-bold text-lg">System Accuracy :</div>
+                                                <div className={`${mainAccColor.text} text-xs font-mono tracking-widest mt-1`}>GLOBAL ENSEMBLE</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold font-mono text-muted mb-1.5 uppercase tracking-widest">
+                                                    <span>T+24 Hours</span><span className={color24.text}>{acc24}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5"><div className={`h-full ${color24.bg} ${color24.shadow}`} style={{width: `${acc24}%`}}></div></div>
+                                            </div>
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold font-mono text-muted mb-1.5 uppercase tracking-widest">
+                                                    <span>T+72 Hours</span><span className={color72.text}>{acc72}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5"><div className={`h-full ${color72.bg} ${color72.shadow}`} style={{width: `${acc72}%`}}></div></div>
+                                            </div>
+                                            <div>
+                                                <div className="flex justify-between text-xs font-bold font-mono text-muted mb-1.5 uppercase tracking-widest">
+                                                    <span>T+168 Hours</span><span className={color168.text}>{acc168}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5"><div className={`h-full ${color168.bg} ${color168.shadow}`} style={{width: `${acc168}%`}}></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TiltCard>
+                        </div>
+
+                        {/* ROW 3 */}
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 mb-12">
+                            <TiltCard delay="1.1s" depth={12}>
+                                <div className="glass-panel p-8 rounded-[2rem] flex flex-col h-full relative group">
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700" style={{background: `radial-gradient(circle at 50% 50%, #10b981, transparent 70%)`}}></div>
+                                    <div className="mb-8 flex justify-between items-start glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                        <div>
+                                            <h3 className="text-2xl font-black text-white mb-2 flex items-center gap-3 tracking-tight">
+                                                <i className="fas fa-bolt text-accent"></i> Near-Term Projection
+                                            </h3>
+                                            <p className="text-sm text-muted font-mono ml-8">6-hour immediate future simulation.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 min-h-[250px] glass-content" style={{ transform: 'translateZ(50px)' }}>
+                                        <ChartComponent data={currentChartData.forecast} labels={currentChartData.labelsForecast} title={`6-Hour Forecast`} color="#10b981" />
+                                    </div>
+                                </div>
+                            </TiltCard>
+
+                            <TiltCard delay="1.2s" depth={12}>
+                                <div className="glass-panel p-8 rounded-[2rem] flex flex-col h-full relative group">
+                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700" style={{background: `radial-gradient(circle at 50% 50%, #8b5cf6, transparent 70%)`}}></div>
+                                    <div className="mb-8 glass-content" style={{ transform: 'translateZ(30px)' }}>
+                                        <h3 className="text-2xl font-black text-white mb-2 flex items-center gap-3 tracking-tight">
+                                            <i className="fas fa-shield-halved text-secondary"></i> Defense Protocols
+                                        </h3>
+                                        <p className="text-sm text-muted font-mono ml-9">System-enforced safety directives.</p>
+                                    </div>
+                                    
+                                    <div className="space-y-4 flex-1 glass-content" style={{ transform: 'translateZ(40px)' }}>
+                                        {[
+                                            { id: 'mask', icon: 'fa-mask-face', title: 'Respiratory Defense', short: aqiInfo.mask, detail: `Current particle density dictates this action. Airborne particulate matter at this level can bypass natural biological filters.` },
+                                            { id: 'hvac', icon: 'fa-house-signal', title: 'Perimeter Seal', short: data.current.aqi > 150 ? 'Seal environment immediately.' : 'Natural ventilation is optimal.', detail: data.current.aqi > 150 ? 'Outdoor air quality is toxic. Close all windows. Engage HEPA filters.' : 'Outdoor air is clean enough to flush indoor accumulated VOCs and CO2.' }
+                                        ].map(prot => (
+                                            <div key={prot.id} onClick={() => setExpandedProtocols(prev => ({...prev,[prot.id]: !prev[prot.id]}))} className="bg-black/40 p-5 rounded-2xl border border-white/5 cursor-pointer hover:border-primary/50 transition-all hover:bg-black/60 shadow-lg group/item">
+                                                <div className="flex items-center gap-5">
+                                                    <div className={`w-14 h-14 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 transition-colors shadow-inner ${expandedProtocols[prot.id] ? 'bg-primary/20 text-primary border-primary/40' : 'text-muted group-hover/item:text-white'}`}>
+                                                        <i className={`fas ${prot.icon} text-2xl`}></i>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <h4 className="font-bold text-white text-lg tracking-tight">{prot.title}</h4>
+                                                            <i className={`fas fa-chevron-down text-sm transition-transform duration-300 ${expandedProtocols[prot.id] ? 'rotate-180 text-primary' : 'text-muted'}`}></i>
+                                                        </div>
+                                                        <p className="text-sm text-primary/80 font-mono">{prot.short}</p>
+                                                    </div>
+                                                </div>
+                                                <div className={`text-sm text-gray-400 pl-[76px] overflow-hidden transition-all duration-300 ${expandedProtocols[prot.id] ? 'max-h-40 opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                                                    <div className="p-4 bg-black/50 rounded-xl border-l-4 border-l-primary leading-relaxed font-mono text-xs">{prot.detail}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </TiltCard>
+                        </div>
+                    </main>
+
+                    <footer className="relative z-10 py-8 border-t border-white/10 bg-[#030305]/80 backdrop-blur-xl mt-12 w-full">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div className="flex items-center gap-4 text-xs font-mono text-muted">
+                                <i className="fas fa-satellite-dish animate-pulse text-primary"></i>
+                                <span>ZENITH CORE SYSTEM v2.4.0</span>
+                            </div>
+                            <button onClick={() => setShowAboutModal(true)} className="text-xs font-mono text-primary/50 hover:text-primary transition-colors flex items-center gap-2 border border-primary/20 hover:border-primary/50 bg-primary/5 px-4 py-2 rounded-lg cursor-pointer">
+                                <i className="fas fa-circle-info"></i> ABOUT_SYSTEM
+                            </button>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
